@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static craftinginterpreters.TokenType.*;
+import static java.lang.Character.isDigit;
 
 public class Scanner {
     private final String source;
@@ -77,7 +78,11 @@ public class Scanner {
                 string();
                 break;
             default:
-                Lox.error(line, "Unexpected character.");
+                if (isDigit(c)) {
+                    number();
+                } else {
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
         }
     }
@@ -99,6 +104,22 @@ public class Scanner {
         // Trim the surrounding quotes.
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
+    }
+
+    private void number() {
+        while (isDigit(peek())) advance();
+
+        // Look for a fractional part.
+        if (peek() == '.' && isDigit(peekNext())) {
+            // Consume the "."
+            advance();
+
+            while (isDigit(peek()))
+                advance();
+        }
+
+        addToken(NUMBER,
+                Double.parseDouble(source.substring(start, current)));
     }
 
     private char advance() {
